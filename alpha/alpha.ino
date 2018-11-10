@@ -7,6 +7,7 @@
 #define ledBlink 13
 long last = 0;
 bool isOn = false;
+bool testSteps[] = {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
 ////
 ////class Button {
 ////  public:
@@ -39,7 +40,7 @@ bool isOn = false;
 ////}
 ////
 byte clockCounter = 0;
-////char stepIndex = 0;
+byte stepIndex = 0;
 ////
 ////Button steps[8];
 //
@@ -65,18 +66,18 @@ void loop()
 
   if (Serial.available() > 0) {
     byte c = Serial.read();
-    
+
     if (c == 0xFA) {
       clockCounter = 5;
-    }else if(c == 0xFC){
-      clockCounter = 0; 
-    }else if (c == 0xF8) {
+    } else if (c == 0xFC) {
+      clockCounter = 0;
+    } else if (c == 0xF8) {
       clockCounter++;
       if (clockCounter == 6)
       {
         last = millis();
         clockCounter = 0;
-        noteOn(0x90, 0x3C, 0x45);
+        nextStep();
         isOn = true;
       }
     }
@@ -84,10 +85,10 @@ void loop()
 
 
 
-  if (millis() - last > 100 && isOn) {
-    noteOn(0x90, 0x3C, 0x00);
-    isOn = false;
-  }
+  //  if (millis() - last > 100 && isOn) {
+  //    noteOn(0x90, 0x3C, 0x00);
+  //    isOn = false;
+  //  }
   digitalWrite(ledBlink, millis() - last < 100);
 }
 //
@@ -120,31 +121,32 @@ void loop()
 ////  }
 ////}
 ////
-////void nextStep()
-////{
-////  if (steps[stepIndex].value)
-////  {
-////    Serial.println("step on!!");
-////  }
-////  else
-////  {
-////    Serial.println("step off :(");
-////  }
-////
-////  stepIndex = (stepIndex + 1) % 8;
-////}
-////
-////void updateSteps() {
-////  for (byte i = 0; i < 8; i++) {
-////    sendBits(i, 6, false);
-////    digitalWrite(ledPort, steps[i].value);
-////    delay(1);
-////    //            digitalWrite(ledPort, true);
-////    bool value = digitalRead(buttonsPort);
-////    steps[i].setReading(value);
-////  }
-////}
-//
+void nextStep()
+{
+  //  if (steps[stepIndex].value)
+    if (testSteps[stepIndex] == 1)
+  {
+    noteOn(0x90, 0x3C, 0x4F);
+  }
+  else
+  {
+    noteOn(0x90, 0x3C, 0x00);
+  }
+
+  stepIndex = (stepIndex + 1) % 16;
+}
+
+//void updateSteps() {
+//  for (byte i = 0; i < 8; i++) {
+//    sendBits(i, 6, false);
+//    digitalWrite(ledPort, steps[i].value);
+//    delay(1);
+//    //            digitalWrite(ledPort, true);
+//    bool value = digitalRead(buttonsPort);
+//    steps[i].setReading(value);
+//  }
+//}
+
 void noteOn(int cmd, int pitch, int velocity) {
   Serial.write(cmd);
   Serial.write(pitch);
