@@ -1,8 +1,9 @@
-#define ledPort A0
+#define ledPort 11
 #define buttonsPort A1
 #define debounceDelay 5
 
 //bool testSteps[] = {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+byte stepIndicator = false;
 
 class Button {
   public:
@@ -53,6 +54,8 @@ void setup()
 
 void loop()
 {
+  updateSteps();
+
   if (Serial.available() > 0) {
     byte c = Serial.read();
 
@@ -72,7 +75,7 @@ void loop()
     }
   }
 
-  updateSteps();
+
 
 }
 
@@ -86,27 +89,33 @@ void sendBits(byte n, byte start, bool is16) { //funcao que manda as saidas muda
   //  tmp = tmp << 2;
   //  PORTD = PORTD & B00000011;
   //  PORTD = PORTD | tmp;
-  byte  tmp = n;
-  if (tmp % 2 == 1)digitalWrite(start, HIGH);
-  else digitalWrite(start, LOW);
-  tmp = tmp / 2;
+  PORTD = PORTD & B00000011;
+  PORTB = PORTB & B100000;
 
-  if (tmp % 2 == 1)digitalWrite(start + 1, HIGH);
-  else digitalWrite(start + 1, LOW);
-  tmp = tmp / 2;
-
-  if (tmp % 2 == 1)digitalWrite(start + 2, HIGH);
-  else digitalWrite(start + 2, LOW);
-  tmp = tmp / 2;
-
-  if (is16) {
-    if (tmp % 2 == 1)digitalWrite(start + 3, HIGH);
-    else digitalWrite(start + 3, LOW);
-  }
+  PORTD = PORTD | (n << 6);
+  PORTB = PORTB | (n >> 2);
+  //  byte  tmp = n;
+  //  if (tmp % 2 == 1)digitalWrite(start, HIGH);
+  //  else digitalWrite(start, LOW);
+  //  tmp = tmp / 2;
+  //
+  //  if (tmp % 2 == 1)digitalWrite(start + 1, HIGH);
+  //  else digitalWrite(start + 1, LOW);
+  //  tmp = tmp / 2;
+  //
+  //  if (tmp % 2 == 1)digitalWrite(start + 2, HIGH);
+  //  else digitalWrite(start + 2, LOW);
+  //  tmp = tmp / 2;
+  //
+  //  if (is16) {
+  //    if (tmp % 2 == 1)digitalWrite(start + 3, HIGH);
+  //    else digitalWrite(start + 3, LOW);
+  //  }
 }
 
 void nextStep()
 {
+  stepIndex = (stepIndex + 1) % 8;
   if (steps[stepIndex].value)
   {
     noteOn(0x90, 0x3C, 0x4F);
@@ -115,18 +124,26 @@ void nextStep()
   {
     noteOn(0x90, 0x3C, 0x00);
   }
-
-  stepIndex = (stepIndex + 1) % 8;
 }
 
 void updateSteps() {
   for (byte i = 0; i < 8; i++) {
     sendBits(i, 6, false);
-    digitalWrite(ledPort, steps[i].value);
-    delay(1); // gambiarra inexplicavel
+    if (steps[i].value && (stepIndex == i)) {
+      digitalWrite(ledPort, true);
+    } else if (steps[i].value) {
+      digitalWrite(ledPort, stepIndicator < 2);
+    } else if (stepIndex == i) {
+      digitalWrite(ledPort, stepIndicator < 1);
+    } else {
+      digitalWrite(ledPort, false);
+    }
+
+    //    delay(2); // gambiarra inexplicavel
     bool value = digitalRead(buttonsPort);
     steps[i].setReading(value);
   }
+  stepIndicator = stepIndicator > 7 ? 0 : stepIndicator + 1;
 }
 
 void noteOn(int cmd, int pitch, int velocity) {
