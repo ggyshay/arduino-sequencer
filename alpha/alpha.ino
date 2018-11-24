@@ -1,23 +1,24 @@
 #define ledPort 11
 #define buttonsPort A1
 #define debounceDelay 5
+#define instrumentPort A0
 
-//bool testSteps[] = {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+
 byte stepIndicator = false;
 
-class Button {
+class SimpleButton {
   public:
-    bool value = false;
-    void setReading (bool);
+    byte value = 0;
+    void setReading(bool);
 
   private:
     bool buttonState = false;
     bool lastButtonState = false;
     unsigned long lastDebounceTime = 0;
-
 };
 
-void Button::setReading (bool reading) {
+
+void SimpleButton::setReading (bool reading) {
   if (reading != lastButtonState) {
     lastDebounceTime = millis();
   }
@@ -27,7 +28,37 @@ void Button::setReading (bool reading) {
       buttonState = reading;
 
       if (buttonState == HIGH) {
-        value = !value;
+        value = (value + 1) % 4;
+      }
+    }
+  }
+
+  lastButtonState = reading;
+}
+
+class Button {
+  public:
+    bool values[4] = {0, 0, 0, 0};
+    void setReading(bool, byte);
+
+  private:
+    bool buttonState = false;
+    bool lastButtonState = false;
+    unsigned long lastDebounceTime = 0;
+
+};
+
+void Button::setReading (bool reading, byte selected) {
+  if (reading != lastButtonState) {
+    lastDebounceTime = millis();
+  }
+
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      if (buttonState == HIGH) {
+        values[selected] = !values[selected];
       }
     }
   }
@@ -37,8 +68,10 @@ void Button::setReading (bool reading) {
 
 byte clockCounter = 0;
 byte stepIndex = 0;
+byte selectedInst = 0;
 
 Button steps[8];
+SimpleButton instButton;
 
 
 void setup()
@@ -50,11 +83,15 @@ void setup()
   pinMode(7, OUTPUT);
   pinMode(8, OUTPUT);
   pinMode(buttonsPort, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop()
 {
   updateSteps();
+  instButton.setReading(digitalRead(instrumentPort));
+  selectedInst = instButton.value;
+  digitalWrite(LED_BUILTIN, selectedInst);
 
   if (Serial.available() > 0) {
     byte c = Serial.read();
@@ -74,74 +111,42 @@ void loop()
       }
     }
   }
-
-
-
 }
 
-void sendBits(byte n, byte start, bool is16) { //funcao que manda as saidas mudarem no digital
-  //  portd são os pinos de 0 a 7
-  //  mexe tudo pra direita pra não afetar os pinos 0 e 1
-  //  zera o resto dos pinos
-  //  associa o tmp ao portd
-
-  //  byte tmp = n;
-  //  tmp = tmp << 2;
-  //  PORTD = PORTD & B00000011;
-  //  PORTD = PORTD | tmp;
+void sendBits(byte n, byte start) {
   PORTD = PORTD & B00000011;
   PORTB = PORTB & B100000;
 
   PORTD = PORTD | (n << 6);
   PORTB = PORTB | (n >> 2);
-  //  byte  tmp = n;
-  //  if (tmp % 2 == 1)digitalWrite(start, HIGH);
-  //  else digitalWrite(start, LOW);
-  //  tmp = tmp / 2;
-  //
-  //  if (tmp % 2 == 1)digitalWrite(start + 1, HIGH);
-  //  else digitalWrite(start + 1, LOW);
-  //  tmp = tmp / 2;
-  //
-  //  if (tmp % 2 == 1)digitalWrite(start + 2, HIGH);
-  //  else digitalWrite(start + 2, LOW);
-  //  tmp = tmp / 2;
-  //
-  //  if (is16) {
-  //    if (tmp % 2 == 1)digitalWrite(start + 3, HIGH);
-  //    else digitalWrite(start + 3, LOW);
-  //  }
 }
 
 void nextStep()
 {
   stepIndex = (stepIndex + 1) % 8;
-  if (steps[stepIndex].value)
-  {
-    noteOn(0x90, 0x3C, 0x4F);
-  }
-  else
-  {
-    noteOn(0x90, 0x3C, 0x00);
+  for (byte i = 0; i < 4; i++) {
+    if (steps[stepIndex].values[i])
+    {
+      noteOn(0x90, 0x24 + i, 0x4F);
+    }
+    else
+    {
+      noteOn(0x90, 0x24 + i, 0x00);
+    }
   }
 }
 
 void updateSteps() {
   for (byte i = 0; i < 8; i++) {
-    sendBits(i, 6, false);
-    if (steps[i].value && (stepIndex == i)) {
-      digitalWrite(ledPort, true);
-    } else if (steps[i].value) {
-      digitalWrite(ledPort, stepIndicator < 2);
+    sendBits(i, 6);
+    if (steps[i].values[selectedInst]) {
+      digitalWrite(ledPort, stepIndicator < 4);
     } else if (stepIndex == i) {
       digitalWrite(ledPort, stepIndicator < 1);
     } else {
       digitalWrite(ledPort, false);
     }
-
-    //    delay(2); // gambiarra inexplicavel
-    bool value = digitalRead(buttonsPort);
-    steps[i].setReading(value);
+    steps[i].setReading(digitalRead(buttonsPort), selectedInst);
   }
   stepIndicator = stepIndicator > 7 ? 0 : stepIndicator + 1;
 }
