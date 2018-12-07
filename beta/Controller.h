@@ -40,7 +40,7 @@ class Instrument {
     void resetSequence(void);
     Instrument(byte _note);
     Sequence *patterns [4];
-  private:
+    bool nextStep();
     byte note;
 };
 

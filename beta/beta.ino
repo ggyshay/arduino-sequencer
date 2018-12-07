@@ -8,6 +8,7 @@ byte copyingPattern = -1;
 byte pressedPattern = -1;
 byte selectedInstrument = -1;
 byte selectedPattern = -1;
+byte clockCounter = 0;
 
 void setup() {
   for (byte i = 0; i < 8; i++) {
@@ -99,7 +100,7 @@ void read16(bool shift) {
   } else {
     for (byte i = 0; i < 16; ++i) {
       sendBits(i);
-      instruments[selectedInstrument]->setStep(selectedPattern, i);
+      instruments[selectedInstrument]->setStep(selectedPattern, i, digitalRead(stepButtonsPort));
     }
   }
 }
@@ -111,11 +112,14 @@ void handleMIDIMessage() {
 
     if (c == 0xFA) {
       clockCounter = 5;
-      re
-      stepIndex = 0;
+      for (byte i = 0; i < 8; i++) {
+        instruments[i]->resetSequence();
+      }
     } else if (c == 0xFC) {
       clockCounter = 0;
-      stepIndex = 0;
+      for (byte i = 0; i < 8; i++) {
+        instruments[i]->resetSequence();
+      }
     } else if (c == 0xF8) {
       clockCounter++;
       if (clockCounter == 6)
@@ -128,9 +132,24 @@ void handleMIDIMessage() {
 }
 
 void nextStep() {
-  
+  // cada instrumento
+  // next step e manda apartir da nota
+  for (byte i = 0; i < 8; i++) {
+    if (instruments[i]->nextStep()){
+      noteOn(0x90, instruments[i]->note, 0x4F);
+    }else {
+      noteOn(0x90, instruments[i]->note, 0);
+    }
+  }
 }
 
-void sendBits(byte i) {
-  
+void sendBits(byte n) {
+  PORTB = PORTB & B100000;
+  PORTB = PORTB | n; // numbers starting at port 8 (to 11)
+}
+
+void noteOn(byte cmd, byte pitch, byte velocity) {
+  Serial.write(cmd);
+  Serial.write(pitch);
+  Serial.write(velocity);
 }

@@ -44,6 +44,10 @@ void Instrument::resetSequence(){
   }
 }
 
+bool Instrument::nextStep(){
+  
+}
+
 void Button::setReading (bool reading, byte selected) {
   if (reading != lastButtonState) {
     lastDebounceTime = millis();
