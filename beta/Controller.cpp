@@ -38,6 +38,12 @@ Instrument::Instrument (byte _note){
   note = _note;
 }
 
+void Instrument::resetSequence(){
+  for(byte i = 0; i < 4; i++){
+    patterns[i]->resetSequence();
+  }
+}
+
 void Button::setReading (bool reading, byte selected) {
   if (reading != lastButtonState) {
     lastDebounceTime = millis();

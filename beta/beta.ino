@@ -60,7 +60,7 @@ void readControlButton(bool value, byte i) {
   switch (i) {
     case pat0:
       pressedPattern = 0;
-      selectedPattern = 0
+      selectedPattern = 0;
       break;
     case pat1:
       pressedPattern = 1;
@@ -99,12 +99,38 @@ void read16(bool shift) {
   } else {
     for (byte i = 0; i < 16; ++i) {
       sendBits(i);
-      instruments[selectedInstrument]->setStep(selectedPattern, i)
+      instruments[selectedInstrument]->setStep(selectedPattern, i);
     }
   }
 }
 
 
 void handleMIDIMessage() {
-  // TODO: copy midi code
+  if (Serial.available() > 0) {
+    byte c = Serial.read();
+
+    if (c == 0xFA) {
+      clockCounter = 5;
+      re
+      stepIndex = 0;
+    } else if (c == 0xFC) {
+      clockCounter = 0;
+      stepIndex = 0;
+    } else if (c == 0xF8) {
+      clockCounter++;
+      if (clockCounter == 6)
+      {
+        clockCounter = 0;
+        nextStep();
+      }
+    }
+  }
+}
+
+void nextStep() {
+  
+}
+
+void sendBits(byte i) {
+  
 }

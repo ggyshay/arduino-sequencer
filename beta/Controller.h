@@ -37,6 +37,7 @@ class Instrument {
   public:
     bool getStep (byte pat, byte idx);
     void setStep (byte pat, byte idx, bool value);
+    void resetSequence(void);
     Instrument(byte _note);
     Sequence *patterns [4];
   private:
