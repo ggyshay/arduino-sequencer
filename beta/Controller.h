@@ -2,7 +2,7 @@
 #define instrumentsLedsPort 2
 #define instrumentsButtonsPort 3
 #define stepsLedsPort 4
-#define stepButtonsPort 5
+#define stepsButtonsPort 5
 #define controlButtonsPort 6
 #define potsPort A0
 #define pat0 0
@@ -27,8 +27,9 @@ class Sequence {
     void setLength(byte _length);
     void resetSequence(void);
     bool values[16] = {false};
-  private:
     byte s_length;
+  private:
+    
     byte currentPosition = 0;
 };
 
@@ -40,7 +41,7 @@ class Instrument {
     void resetSequence(void);
     Instrument(byte _note);
     Sequence *patterns [4];
-    bool nextStep();
+    bool nextStep(byte selectedPattern);
     byte note;
 };
 
@@ -55,6 +56,5 @@ class Button {
     bool lastButtonState = false;
     unsigned long lastDebounceTime = 0;
 };
-
-
-void copyPattern(byte a, byte b, byte selectedInstrument);
+void sendBits(byte i);
+void noteOn(byte cmd, byte pitch, byte velocity);

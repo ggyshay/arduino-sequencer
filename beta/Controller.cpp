@@ -26,26 +26,26 @@ void Sequence::resetSequence() {
   currentPosition = 0;
 }
 
-bool Instrument::getStep (byte pat, byte idx){
+bool Instrument::getStep (byte pat, byte idx) {
   return patterns[pat] -> values[idx];
 }
 
-void Instrument::setStep (byte pat, byte idx, bool value){
+void Instrument::setStep (byte pat, byte idx, bool value) {
   patterns[pat] -> values[idx] = value;
 }
 
-Instrument::Instrument (byte _note){
+Instrument::Instrument (byte _note) {
   note = _note;
 }
 
-void Instrument::resetSequence(){
-  for(byte i = 0; i < 4; i++){
+void Instrument::resetSequence() {
+  for (byte i = 0; i < 4; i++) {
     patterns[i]->resetSequence();
   }
 }
 
-bool Instrument::nextStep(){
-  
+bool Instrument::nextStep(byte selectedPattern) {
+  return patterns[selectedPattern]->getNextStep();
 }
 
 void Button::setReading (bool reading, byte selected) {
@@ -66,10 +66,17 @@ void Button::setReading (bool reading, byte selected) {
   lastButtonState = reading;
 }
 
-Button::Button(bool *_value){
+Button::Button(bool *_value) {
   value = _value;
 }
 
-void copyPattern(byte a, byte b, byte selectedInst){
-  // copy a to b
+void sendBits(byte n) {
+  PORTB = PORTB & B100000;
+  PORTB = PORTB | n; // numbers starting at port 8 (to 11)
+}
+
+void noteOn(byte cmd, byte pitch, byte velocity) {
+  Serial.write(cmd);
+  Serial.write(pitch);
+  Serial.write(velocity);
 }
