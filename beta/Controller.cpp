@@ -69,3 +69,12 @@ Button::Button(bool *_value){
 void copyPattern(byte a, byte b, byte selectedInst){
   // copy a to b
 }
+
+Potentiometer::Potentiometer(byte control) {
+  _control = control;
+}
+
+byte Potentiometer::getValue() {
+
+  return 255;
+}

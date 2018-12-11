@@ -17,7 +17,7 @@ extern bool startPressed;
 extern bool pat3Pressed;
 extern bool pat2Pressed;
 extern bool pat1Pressed;
-extern bool  pat0Pressed;
+extern bool pat0Pressed;
 
 
 class Sequence {
@@ -58,3 +58,15 @@ class Button {
 
 
 void copyPattern(byte a, byte b, byte selectedInstrument);
+
+class Potentiometer {
+  public:
+    Potentiometer(byte control);
+    void setValue(byte value);
+    byte getValue(void);
+
+  private:
+    byte _control;
+    byte _value;
+    byte _oldValue;
+};
