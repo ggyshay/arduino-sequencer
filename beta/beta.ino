@@ -7,7 +7,8 @@ Instrument *repeating;
 byte copyingPattern = -1;
 byte pressedPattern = -1;
 byte selectedInstrument = -1;
-byte selectedPattern = -1;
+byte selectedPattern = 0;
+byte clockCounter = 0;
 
 void setup() {
   for (byte i = 0; i < 8; i++) {
@@ -91,15 +92,19 @@ void readInstrumentButton(bool value, byte i) {
 void read16(bool shift) {
   if (shift) {
     byte newLength = 0;
+    byte oldLength = instruments[selectedInstrument]->patterns[selectedPattern]->s_length;
     for (byte i = 0; i < 16; ++i) {
       sendBits(i);
-      if (digitalRead(stepButtonsPort)) newLength = i;
+      if (digitalRead(stepsButtonsPort)) newLength = i;
+      if(i < oldLength) digitalWrite(stepsLedsPort, HIGH);
+      else digitalWrite(stepsLedsPort, LOW);
       //read pots
     }
+    instruments[selectedInstrument]->patterns[selectedPattern]->s_length = newLength;
   } else {
     for (byte i = 0; i < 16; ++i) {
       sendBits(i);
-      instruments[selectedInstrument]->setStep(selectedPattern, i);
+      instruments[selectedInstrument]->setStep(selectedPattern, i, digitalRead(stepsButtonsPort));
     }
   }
 }
@@ -111,11 +116,14 @@ void handleMIDIMessage() {
 
     if (c == 0xFA) {
       clockCounter = 5;
-      re
-      stepIndex = 0;
+      for (byte i = 0; i < 8; i++) {
+        instruments[i]->resetSequence();
+      }
     } else if (c == 0xFC) {
       clockCounter = 0;
-      stepIndex = 0;
+      for (byte i = 0; i < 8; i++) {
+        instruments[i]->resetSequence();
+      }
     } else if (c == 0xF8) {
       clockCounter++;
       if (clockCounter == 6)
@@ -128,9 +136,18 @@ void handleMIDIMessage() {
 }
 
 void nextStep() {
-  
+  for (byte i = 0; i < 8; i++) {
+    if (instruments[i]->nextStep(selectedPattern)){
+      noteOn(0x90, instruments[i]->note, 0x4F);
+    }else {
+      noteOn(0x90, instruments[i]->note, 0);
+    }
+  }
 }
 
-void sendBits(byte i) {
-  
+void copyPattern(byte a, byte b, byte selectedInst) {
+  for (byte i = 0; i < 16; i++) {
+    instruments[selectedInst]->patterns[b]->values[i] =
+      instruments[selectedInst]->patterns[a]->values[i];
+  }
 }
