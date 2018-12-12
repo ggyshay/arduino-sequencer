@@ -17,7 +17,7 @@ byte stepIndicator = 0;
 void setup() {
   Serial.begin(115200);
   for (byte i = 0; i < 8; i++) {
-    instruments[i] = new Instrument(0x24 + i);
+    instruments[i] = new Instrument(36 + i);
     steps[i] = new Button(nullptr, false);
     instrumentsButtons[i] = new Button(instrumentsButtonsAux + i, true);
   }
@@ -43,40 +43,23 @@ void setup() {
 }
 
 void loop() {
-  //read control buttons
-  //  repeating = nullptr;
-  for (byte i = 0; i < 8; ++i) {
-    sendBits(i);
-    bool patChanged = readControlButton(i);
-    if (patChanged) {
-      setupStepsPointers();
-    }
-    readInstrumentButton(i);
-    if (*instrumentsButtons[i]->value && i != selectedInstrument) {
-      selectedInstrument = i;
-      setupStepsPointers();
-    }
-
-  }
-
+   repeating = nullptr;
+  read8();
   if (shiftPressed) {
     //    if (copyPressed) {
     //      if (pressedPattern != -1 && copyingPattern != -1) {
     //        copyPattern(copyingPattern, pressedPattern, selectedInstrument);
     //      }
     //    }
-
-    // read steps as length setting
-    read16(true);
+    read16(true);// read steps as length setting
   } else {
     //    if (copyPressed) {
     //      copyingPattern = pressedPattern;
     //    }
-    //le steps normal
-    read16(false);
+    read16(false);// read steps normally
   }
 
-  //  handleMIDIMessage();
+  handleMIDIMessage();
 }
 
 bool readControlButton(byte i) {
@@ -87,6 +70,7 @@ bool readControlButton(byte i) {
     case pat0:
       if (selectedPattern == 0) return false;
       pressedPattern = 0;
+
       selectedPattern = 0;
       return true;
     case pat1:
@@ -95,12 +79,12 @@ bool readControlButton(byte i) {
       selectedPattern = 1;
       return true;
     case pat2:
-      if (selectedPattern == 0) return false;
+      if (selectedPattern == 2) return false;
       pressedPattern = 2;
       selectedPattern = 2;
       return true;
     case pat3:
-      if (selectedPattern == 0) return false;
+      if (selectedPattern == 3) return false;
       pressedPattern = 3;
       selectedPattern = 3;
       return true;
@@ -111,13 +95,27 @@ bool readControlButton(byte i) {
 }
 
 void readInstrumentButton(byte i) {
-
-  //    if (!shiftPressed && beatRepeatPressed && value) {
-  //      repeating = instruments[i];
-  //    }
-  instrumentsButtons[i]->setReading(digitalRead(instrumentsButtonsPort));
+bool value = digitalRead(instrumentsButtonsPort);
+  if (!shiftPressed && beatRepeatPressed) {
+    instruments[i]->repeating = value;
+  }
+  instrumentsButtons[i]->setReading(value);
 }
 
+void read8(){
+    for (byte i = 0; i < 8; ++i) {
+    sendBits(i);
+    bool patChanged = readControlButton(i);
+    if (patChanged) {
+      setupStepsPointers();
+    }
+    readInstrumentButton(i);
+    if (*instrumentsButtons[i]->value && i != selectedInstrument) {
+      selectedInstrument = i;
+      setupStepsPointers();
+    }
+  }
+}
 
 void read16(bool shift) {
   if (shift) {
@@ -132,18 +130,17 @@ void read16(bool shift) {
     }
     instruments[selectedInstrument]->patterns[selectedPattern]->s_length = newLength;
   } else {
-    //    Serial.println("read16");
     for (byte i = 0; i < SEQUENCE_LENGTH; ++i) {
       sendBits(i);
       if (*(steps[i]->value)) {
         digitalWrite(stepsLedsPort, stepIndicator < 4);
-        // TODO: reintroduce index highlight
-        //      } else if (instruments[selectedInstrument]->getPosition(selectedPattern) == i) {
-        //        digitalWrite(stepsLedsPort, stepIndicator < 1);
+      } else if (instruments[selectedInstrument]->getPosition(selectedPattern) == i) {
+        digitalWrite(stepsLedsPort, stepIndicator < 1);
       } else {
         digitalWrite(stepsLedsPort, false);
       }
       steps[i]->setReading(digitalRead(stepsButtonsPort));
+      //read pots
     }
     stepIndicator = (stepIndicator + 1) & 0b00000111;
   }
@@ -153,7 +150,6 @@ void read16(bool shift) {
 void handleMIDIMessage() {
   if (Serial.available() > 0) {
     byte c = Serial.read();
-
     if (c == 0xFA) {
       clockCounter = 5;
       for (byte i = 0; i < 8; i++) {
@@ -178,7 +174,7 @@ void handleMIDIMessage() {
 void nextStep() {
   for (byte i = 0; i < 8; i++) {
     if (instruments[i]->nextStep(selectedPattern)) {
-      noteOn(0x90, instruments[i]->note, 0x4F);
+      noteOn(0x90, instruments[i]->note, 0x7F);
     } else {
       noteOn(0x90, instruments[i]->note, 0);
     }

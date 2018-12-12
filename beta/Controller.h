@@ -23,15 +23,14 @@ extern bool pat0Pressed;
 
 class Sequence {
   public:
-    bool getNextStep(void);
+    bool getStep(byte i);
     void setStep(byte i, bool value);
     void setLength(byte _length);
-    void resetSequence(void);
+//    void resetSequence(void);
     bool values[SEQUENCE_LENGTH] = {false};
     byte s_length = SEQUENCE_LENGTH;
-    byte getPosition(void);
-  private:
-    byte currentPosition = 0;
+//    byte getPosition(void);
+//    byte currentPosition = 0;
 };
 
 
@@ -45,6 +44,8 @@ class Instrument {
     bool nextStep(byte selectedPattern);
     byte note;
     byte getPosition(byte selectedPattern);
+    byte currentPosition = 0;
+    byte repeating = false;
 };
 
 class Button {

@@ -10,8 +10,10 @@ bool pat1Pressed = false;
 bool pat2Pressed = false;
 bool pat3Pressed = false;
 
-bool Sequence::getNextStep() {
-  return values[currentPosition++];
+bool Sequence::getStep(byte i) {
+  //  bool tmp = values[currentPosition++];
+  //  currentPosition %= s_length;
+  return values[i];
 }
 
 void Sequence::setStep(byte i, bool value) {
@@ -22,13 +24,6 @@ void Sequence::setLength(byte _length) {
   s_length = _length;
 }
 
-void Sequence::resetSequence() {
-  currentPosition = 0;
-}
-
-byte Sequence::getPosition() {
-  return currentPosition;
-}
 bool Instrument::getStep (byte pat, byte idx) {
   return patterns[pat] -> values[idx];
 }
@@ -42,29 +37,26 @@ void Instrument::setStep (byte pat, byte idx, bool value) {
 
 Instrument::Instrument (byte _note) {
   note = _note;
-  for(byte i = 0; i < 4; i++){
+  for (byte i = 0; i < 4; i++) {
     patterns[i] = new Sequence();
   }
 }
 
 void Instrument::resetSequence() {
-  for (byte i = 0; i < 4; i++) {
-    patterns[i]->resetSequence();
-  }
+  currentPosition = 0;
 }
 
 bool Instrument::nextStep(byte selectedPattern) {
-  return patterns[selectedPattern]->getNextStep();
+  bool tmp = repeating ? true : patterns[selectedPattern]->getStep(currentPosition);
+  currentPosition = (currentPosition + 1) % patterns[selectedPattern]->s_length;
+  return tmp;
 }
 
 byte Instrument::getPosition(byte selectedPattern) {
-  return patterns[selectedPattern]->getPosition();
+  return (currentPosition + patterns[selectedPattern]->s_length - 1) % patterns[selectedPattern]->s_length;
 }
 
 void Button::setReading (bool reading) {
-  if(!value || value == nullptr){
-//    Serial.println("null value!!!");
-  }
   if (reading != lastButtonState) {
     lastDebounceTime = millis();
   }
@@ -73,9 +65,9 @@ void Button::setReading (bool reading) {
     if (reading != buttonState) {
       buttonState = reading;
 
-      if(isReleaseSensitive){
+      if (isReleaseSensitive) {
         *value = buttonState;
-      }else {
+      } else {
         if (buttonState == HIGH) {
           *value = !*value;
         }
@@ -90,7 +82,7 @@ Button::Button(bool *_value, bool _isReleaseSensitive) {
   isReleaseSensitive = _isReleaseSensitive;
 }
 
-void Button::setPointer(bool *ptr){
+void Button::setPointer(bool *ptr) {
   value = ptr;
 }
 
