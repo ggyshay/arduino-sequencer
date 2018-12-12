@@ -26,16 +26,25 @@ void Sequence::resetSequence() {
   currentPosition = 0;
 }
 
+byte Sequence::getPosition() {
+  return currentPosition;
+}
 bool Instrument::getStep (byte pat, byte idx) {
   return patterns[pat] -> values[idx];
 }
 
 void Instrument::setStep (byte pat, byte idx, bool value) {
-  patterns[pat] -> values[idx] = value;
+  if (value) {
+    patterns[pat] -> values[idx] = !patterns[pat] -> values[idx];
+  }
+
 }
 
 Instrument::Instrument (byte _note) {
   note = _note;
+  for(byte i = 0; i < 4; i++){
+    patterns[i] = new Sequence();
+  }
 }
 
 void Instrument::resetSequence() {
@@ -48,7 +57,14 @@ bool Instrument::nextStep(byte selectedPattern) {
   return patterns[selectedPattern]->getNextStep();
 }
 
-void Button::setReading (bool reading, byte selected) {
+byte Instrument::getPosition(byte selectedPattern) {
+  return patterns[selectedPattern]->getPosition();
+}
+
+void Button::setReading (bool reading) {
+  if(!value || value == nullptr){
+//    Serial.println("null value!!!");
+  }
   if (reading != lastButtonState) {
     lastDebounceTime = millis();
   }
@@ -57,17 +73,25 @@ void Button::setReading (bool reading, byte selected) {
     if (reading != buttonState) {
       buttonState = reading;
 
-      if (buttonState == HIGH) {
-        *value = !*value;
+      if(isReleaseSensitive){
+        *value = buttonState;
+      }else {
+        if (buttonState == HIGH) {
+          *value = !*value;
+        }
       }
     }
   }
-
   lastButtonState = reading;
 }
 
-Button::Button(bool *_value) {
+Button::Button(bool *_value, bool _isReleaseSensitive) {
   value = _value;
+  isReleaseSensitive = _isReleaseSensitive;
+}
+
+void Button::setPointer(bool *ptr){
+  value = ptr;
 }
 
 void sendBits(byte n) {
