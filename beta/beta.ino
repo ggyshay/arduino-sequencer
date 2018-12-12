@@ -3,8 +3,8 @@
 Instrument *instruments[8];
 Button *controlButtons[8];
 Button *steps[8];
-//Button *instrumentsButtons[8];
-//bool instrumentsButtonsAux[8] = {false};
+Button *instrumentsButtons[8];
+bool instrumentsButtonsAux[8] = {false};
 
 Instrument *repeating;
 byte copyingPattern = -1;
@@ -19,12 +19,12 @@ void setup() {
   for (byte i = 0; i < 8; i++) {
     instruments[i] = new Instrument(0x24 + i);
     steps[i] = new Button(nullptr, false);
-    //instrumentsButtons[i] = new Button(instrumentsButtonsAux + i);
+    instrumentsButtons[i] = new Button(instrumentsButtonsAux + i, true);
   }
   controlButtons[0] = new Button(&shiftPressed, true);
   controlButtons[1] = new Button(&copyPressed, true);
   controlButtons[2] = new Button(&beatRepeatPressed, true);
-  controlButtons[3] = new Button(&startPressed, true);
+  controlButtons[3] = new Button(&startPressed, false);
   controlButtons[4] = new Button(&pat0Pressed, true);
   controlButtons[5] = new Button(&pat1Pressed, true);
   controlButtons[6] = new Button(&pat2Pressed, true);
@@ -44,16 +44,16 @@ void setup() {
 
 void loop() {
   //read control buttons
-//  repeating = nullptr;
+  //  repeating = nullptr;
   for (byte i = 0; i < 8; ++i) {
     sendBits(i);
     readControlButton(i);
-
-    //    readInstrumentButton(digitalRead(instrumentsButtonsPort), i);
-    //    if (instrumentsButtonsAux[i] && i != selectedInstrument) {
-    //      selectedInstrument = i;
-    //      setupStepsPointers();
-    //    }
+    
+    readInstrumentButton(i);
+    if (*instrumentsButtons[i]->value && i != selectedInstrument) {
+      selectedInstrument = i;
+      setupStepsPointers();
+    }
 
   }
 
@@ -79,34 +79,35 @@ void loop() {
 
 void readControlButton(byte i) {
   controlButtons[i]->setReading(digitalRead(controlButtonsPort));
-  //  switch (i) {
-  //    case pat0:
-  //      pressedPattern = 0;
-  //      selectedPattern = 0;
-  //      break;
-  //    case pat1:
-  //      pressedPattern = 1;
-  //      selectedPattern = 1;
-  //      break;
-  //    case pat2:
-  //      pressedPattern = 2;
-  //      selectedPattern = 2;
-  //      break;
-  //    case pat3:
-  //      pressedPattern = 3;
-  //      selectedPattern = 3;
-  //      break;
-  //    default:
-  //      pressedPattern = -1;
-  //      break;
-  //  }
+  switch (i) {
+    case pat0:
+      pressedPattern = 0;
+      selectedPattern = 0;
+      break;
+    case pat1:
+      pressedPattern = 1;
+      selectedPattern = 1;
+      break;
+    case pat2:
+      pressedPattern = 2;
+      selectedPattern = 2;
+      break;
+    case pat3:
+      pressedPattern = 3;
+      selectedPattern = 3;
+      break;
+    default:
+      pressedPattern = -1;
+      break;
+  }
 }
 
-void readInstrumentButton(bool value, byte i) {
+void readInstrumentButton(byte i) {
+   
   //    if (!shiftPressed && beatRepeatPressed && value) {
   //      repeating = instruments[i];
   //    }
-  //  instrumentsButtons[i]->setReading(value);
+    instrumentsButtons[i]->setReading(digitalRead(instrumentsButtonsPort));
 }
 
 
@@ -184,12 +185,7 @@ void copyPattern(byte a, byte b, byte selectedInst) {
 }
 
 void setupStepsPointers() {
-  Serial.println("setup pointers");
   for (byte i = 0; i < 8; i++) {
-    //    steps[i]->setPointer(instruments[selectedInstrument]->patterns[selectedPattern]->values + i);
-    steps[i]->setPointer(instruments[0]->patterns[0]->values + i);
-    if(!steps[i]->value){
-      Serial.println("assignment failed");
-    }
+    steps[i]->setPointer(instruments[selectedInstrument]->patterns[selectedPattern]->values + i);
   }
 }
