@@ -47,8 +47,10 @@ void loop() {
   //  repeating = nullptr;
   for (byte i = 0; i < 8; ++i) {
     sendBits(i);
-    readControlButton(i);
-    
+    bool patChanged = readControlButton(i);
+    if (patChanged) {
+      setupStepsPointers();
+    }
     readInstrumentButton(i);
     if (*instrumentsButtons[i]->value && i != selectedInstrument) {
       selectedInstrument = i;
@@ -77,37 +79,43 @@ void loop() {
   //  handleMIDIMessage();
 }
 
-void readControlButton(byte i) {
-  controlButtons[i]->setReading(digitalRead(controlButtonsPort));
+bool readControlButton(byte i) {
+  bool tmp = digitalRead(controlButtonsPort);
+  controlButtons[i]->setReading(tmp);
+  if (!tmp) return false;
   switch (i) {
     case pat0:
+      if (selectedPattern == 0) return false;
       pressedPattern = 0;
       selectedPattern = 0;
-      break;
+      return true;
     case pat1:
+      if (selectedPattern == 1) return false;
       pressedPattern = 1;
       selectedPattern = 1;
-      break;
+      return true;
     case pat2:
+      if (selectedPattern == 0) return false;
       pressedPattern = 2;
       selectedPattern = 2;
-      break;
+      return true;
     case pat3:
+      if (selectedPattern == 0) return false;
       pressedPattern = 3;
       selectedPattern = 3;
-      break;
+      return true;
     default:
       pressedPattern = -1;
-      break;
+      return false;
   }
 }
 
 void readInstrumentButton(byte i) {
-   
+
   //    if (!shiftPressed && beatRepeatPressed && value) {
   //      repeating = instruments[i];
   //    }
-    instrumentsButtons[i]->setReading(digitalRead(instrumentsButtonsPort));
+  instrumentsButtons[i]->setReading(digitalRead(instrumentsButtonsPort));
 }
 
 

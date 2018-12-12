@@ -5,10 +5,10 @@
 #define stepsButtonsPort 4
 #define controlButtonsPort 6
 #define potsPort A0
-#define pat0 0
-#define pat1 1
-#define pat2 2
-#define pat3 3
+#define pat0 4
+#define pat1 5
+#define pat2 6
+#define pat3 7
 #define SEQUENCE_LENGTH 8
 
 extern bool shiftPressed;
@@ -18,7 +18,7 @@ extern bool startPressed;
 extern bool pat3Pressed;
 extern bool pat2Pressed;
 extern bool pat1Pressed;
-extern bool  pat0Pressed;
+extern bool pat0Pressed;
 
 
 class Sequence {
@@ -48,7 +48,7 @@ class Instrument {
 };
 
 class Button {
-  // be possible to be release sensitive or not 
+    // be possible to be release sensitive or not
   public:
     bool *value;
     bool isReleaseSensitive;
