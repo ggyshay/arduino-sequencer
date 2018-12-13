@@ -2,6 +2,7 @@
 
 Instrument *instruments[8];
 Button *controlButtons[8];
+Potentiometer pots[16];
 
 Instrument *repeating;
 byte copyingPattern = -1;
@@ -11,8 +12,12 @@ byte selectedPattern = 0;
 byte clockCounter = 0;
 
 void setup() {
+  pinMode(A0, INPUT);
   for (byte i = 0; i < 8; i++) {
     instruments[i] = new Instrument(0x24 + i);
+  }
+  for (byte i = 0; i < 16; i++) {
+    pots[i] = new Potentiometer(48 + i);
   }
   controlButtons[0] = new Button(&shiftPressed);
   controlButtons[1] = new Button(&copyPressed);
@@ -99,12 +104,15 @@ void read16(bool shift) {
       if(i < oldLength) digitalWrite(stepsLedsPort, HIGH);
       else digitalWrite(stepsLedsPort, LOW);
       //read pots
+      readPotentiometers(i);
     }
     instruments[selectedInstrument]->patterns[selectedPattern]->s_length = newLength;
   } else {
     for (byte i = 0; i < 16; ++i) {
       sendBits(i);
       instruments[selectedInstrument]->setStep(selectedPattern, i, digitalRead(stepsButtonsPort));
+      //pots
+      readPotentiometers(i);
     }
   }
 }
@@ -138,9 +146,9 @@ void handleMIDIMessage() {
 void nextStep() {
   for (byte i = 0; i < 8; i++) {
     if (instruments[i]->nextStep(selectedPattern)){
-      noteOn(0x90, instruments[i]->note, 0x4F);
+      writeMIDI(0x90, instruments[i]->note, 0x4F);
     }else {
-      noteOn(0x90, instruments[i]->note, 0);
+      writeMIDI(0x90, instruments[i]->note, 0);
     }
   }
 }
@@ -150,4 +158,8 @@ void copyPattern(byte a, byte b, byte selectedInst) {
     instruments[selectedInst]->patterns[b]->values[i] =
       instruments[selectedInst]->patterns[a]->values[i];
   }
+}
+
+void readPotentiometer(byte i) {
+  pots[i].setReading(analogRead(potsPort) >> 3);
 }

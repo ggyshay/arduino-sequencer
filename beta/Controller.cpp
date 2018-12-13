@@ -75,7 +75,7 @@ void sendBits(byte n) {
   PORTB = PORTB | n; // numbers starting at port 8 (to 11)
 }
 
-void noteOn(byte cmd, byte pitch, byte velocity) {
+void writeMIDI(byte cmd, byte pitch, byte velocity) {
   Serial.write(cmd);
   Serial.write(pitch);
   Serial.write(velocity);
@@ -83,9 +83,22 @@ void noteOn(byte cmd, byte pitch, byte velocity) {
 
 Potentiometer::Potentiometer(byte control) {
   _control = control;
+  _value = 0;
 }
 
-byte Potentiometer::getValue() {
+void Potentiometer::setReading(byte value) {
+  if (_value - value > POT_RESOLUTION || _value - value < - POT_RESOLUTION){
+    potTime = millis();
+  }
+    
+  if (potTime + POT_TIMEOUT > millis()){
+    moving = true;
+  } else {
+    moving = false;
+  }
 
-  return 255;
+  if (moving){
+    _value = value;
+    writeMIDI(pots[i]._control, pots[i]._value, 0);
+  }
 }

@@ -5,6 +5,8 @@
 #define stepsButtonsPort 5
 #define controlButtonsPort 6
 #define potsPort A0
+#define POT_RESOLUTION 2
+#define POT_TIMEOUT 300
 #define pat0 0
 #define pat1 1
 #define pat2 2
@@ -60,15 +62,15 @@ class Button {
 class Potentiometer {
   public:
     Potentiometer(byte control);
-    void setValue(byte value);
+    void setReading(byte value);
     byte getValue(void);
+    long potTime;
+    bool moving;
 
   private:
     byte _control;
     byte _value;
-    byte _oldValue;
 };
 
 void sendBits(byte i);
 void noteOn(byte cmd, byte pitch, byte velocity);
-
