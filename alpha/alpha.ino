@@ -1,5 +1,5 @@
 #define ledPort 11
-#define buttonsPort A1
+#define buttonsPort 4
 #define debounceDelay 5
 #define instrumentPort A0
 
@@ -82,6 +82,8 @@ void setup()
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
   pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
+  pinMode(10, OUTPUT);
   pinMode(buttonsPort, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 }
@@ -114,11 +116,8 @@ void loop()
 }
 
 void sendBits(byte n, byte start) {
-  PORTD = PORTD & B00000011;
   PORTB = PORTB & B100000;
-
-  PORTD = PORTD | (n << 6);
-  PORTB = PORTB | (n >> 2);
+  PORTB = PORTB | n; // numbers starting at port 8 (to 11)
 }
 
 void nextStep()

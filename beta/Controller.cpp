@@ -10,8 +10,10 @@ bool pat1Pressed = false;
 bool pat2Pressed = false;
 bool pat3Pressed = false;
 
-bool Sequence::getNextStep() {
-  return values[currentPosition++];
+bool Sequence::getStep(byte i) {
+  //  bool tmp = values[currentPosition++];
+  //  currentPosition %= s_length;
+  return values[i];
 }
 
 void Sequence::setStep(byte i, bool value) {
@@ -22,33 +24,39 @@ void Sequence::setLength(byte _length) {
   s_length = _length;
 }
 
-void Sequence::resetSequence() {
-  currentPosition = 0;
-}
-
 bool Instrument::getStep (byte pat, byte idx) {
   return patterns[pat] -> values[idx];
 }
 
 void Instrument::setStep (byte pat, byte idx, bool value) {
-  patterns[pat] -> values[idx] = value;
+  if (value) {
+    patterns[pat] -> values[idx] = !patterns[pat] -> values[idx];
+  }
+
 }
 
 Instrument::Instrument (byte _note) {
   note = _note;
-}
-
-void Instrument::resetSequence() {
   for (byte i = 0; i < 4; i++) {
-    patterns[i]->resetSequence();
+    patterns[i] = new Sequence();
   }
 }
 
-bool Instrument::nextStep(byte selectedPattern) {
-  return patterns[selectedPattern]->getNextStep();
+void Instrument::resetSequence() {
+  currentPosition = 0;
 }
 
-void Button::setReading (bool reading, byte selected) {
+bool Instrument::nextStep(byte selectedPattern) {
+  bool tmp = repeating ? true : patterns[selectedPattern]->getStep(currentPosition);
+  currentPosition = (currentPosition + 1) % patterns[selectedPattern]->s_length;
+  return tmp;
+}
+
+byte Instrument::getPosition(byte selectedPattern) {
+  return (currentPosition + patterns[selectedPattern]->s_length - 1) % patterns[selectedPattern]->s_length;
+}
+
+void Button::setReading (bool reading) {
   if (reading != lastButtonState) {
     lastDebounceTime = millis();
   }
@@ -57,17 +65,25 @@ void Button::setReading (bool reading, byte selected) {
     if (reading != buttonState) {
       buttonState = reading;
 
-      if (buttonState == HIGH) {
-        *value = !*value;
+      if (isReleaseSensitive) {
+        *value = buttonState;
+      } else {
+        if (buttonState == HIGH) {
+          *value = !*value;
+        }
       }
     }
   }
-
   lastButtonState = reading;
 }
 
-Button::Button(bool *_value) {
+Button::Button(bool *_value, bool _isReleaseSensitive) {
   value = _value;
+  isReleaseSensitive = _isReleaseSensitive;
+}
+
+void Button::setPointer(bool *ptr) {
+  value = ptr;
 }
 
 void sendBits(byte n) {
