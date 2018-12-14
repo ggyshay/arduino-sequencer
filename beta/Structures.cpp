@@ -15,8 +15,8 @@ Button *steps[8];
 Button *instrumentsButtons[8];
 bool instrumentsButtonsAux[8] = {false};
 
-void setupStructures (){
-          for (byte i = 0; i < 8; i++) {
+void setupStructures () {
+  for (byte i = 0; i < 8; i++) {
     instruments[i] = new Instrument(36 + i);
     steps[i] = new Button(nullptr, false);
     instrumentsButtons[i] = new Button(instrumentsButtonsAux + i, true);
@@ -30,7 +30,7 @@ void setupStructures (){
   controlButtons[6] = new Button(&pat2Pressed, true);
   controlButtons[7] = new Button(&pat3Pressed, true);
 
-   pinMode(instrumentsLedsPort, OUTPUT);
+  pinMode(instrumentsLedsPort, OUTPUT);
   pinMode(stepsLedsPort, OUTPUT);
   pinMode(instrumentsButtonsPort, INPUT);
   pinMode(stepsButtonsPort, INPUT);
