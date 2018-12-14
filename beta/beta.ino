@@ -83,6 +83,7 @@ void read16(bool shift)
       else
         digitalWrite(stepsLedsPort, LOW);
       //read pots
+      readPotentiometer(i);
     }
     instruments[selectedInstrument]->patterns[selectedPattern]->s_length = newLength;
   }
@@ -105,6 +106,7 @@ void read16(bool shift)
       }
       steps[i]->setReading(digitalRead(stepsButtonsPort));
       //read pots
+      readPotentiometer(i);
     }
     stepIndicator = (stepIndicator + 1) & 0b00000111;
   }
@@ -149,11 +151,11 @@ void nextStep()
   {
     if (instruments[i]->nextStep(selectedPattern))
     {
-      noteOn(0x90, instruments[i]->note, 0x7F);
+      writeMIDI(0x90, instruments[i]->note, 0x7F);
     }
     else
     {
-      noteOn(0x90, instruments[i]->note, 0);
+      writeMIDI(0x90, instruments[i]->note, 0);
     }
   }
 }
@@ -171,4 +173,8 @@ void setupStepsPointers()
 {
   for (byte i = 0; i < 8; i++)
     steps[i]->setPointer(instruments[selectedInstrument]->patterns[selectedPattern]->values + i);
+}
+
+void readPotentiometer(byte i) {
+  pots[i].setReading(analogRead(potsPort) >> 3);
 }

@@ -13,6 +13,7 @@ Instrument *instruments[8];
 Button *controlButtons[8];
 Button *steps[8];
 Button *instrumentsButtons[8];
+Potentiometer pots[16];
 bool instrumentsButtonsAux[8] = {false};
 
 void setupStructures () {
@@ -20,6 +21,9 @@ void setupStructures () {
     instruments[i] = new Instrument(36 + i);
     steps[i] = new Button(nullptr, false);
     instrumentsButtons[i] = new Button(instrumentsButtonsAux + i, true);
+  }
+  for (byte i = 0; i < 16; i++) {
+    Potentiometer pots(48 + i);
   }
   controlButtons[0] = new Button(&shiftPressed, true);
   controlButtons[1] = new Button(&copyPressed, true);
@@ -38,4 +42,5 @@ void setupStructures () {
   pinMode(8, OUTPUT);
   pinMode(9, OUTPUT);
   pinMode(10, OUTPUT);
+  pinMode(A0, INPUT);
 }
