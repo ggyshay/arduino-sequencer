@@ -4,7 +4,7 @@ void setup()
 {
   Serial.begin(115200);
   setupStructures();
-  setupStepsPointers();
+  setupStepsPointers(); 
 }
 
 void loop()
@@ -24,7 +24,12 @@ bool readControlButton(byte i)
   if (!tmp)
     return false;
   if (copyPressed) {
+    if (selectedPattern == i - pat0) return false;
     copyPattern(selectedPattern, i - pat0, selectedInstrument);
+    return false;
+  }
+  if (startPressed) {
+    playingPattern = selectedPattern;
     return false;
   }
   if (i == pat0 || i == pat1 || i == pat2 || i == pat3)
@@ -83,7 +88,7 @@ void read16(bool shift)
       else
         digitalWrite(stepsLedsPort, LOW);
       //read pots
-      readPotentiometer(i);
+      //      readPotentiometer(i);
     }
     instruments[selectedInstrument]->patterns[selectedPattern]->s_length = newLength;
   }
@@ -94,11 +99,11 @@ void read16(bool shift)
       sendBits(i);
       if (*(steps[i]->value))
       {
-        digitalWrite(stepsLedsPort, stepIndicator < 4);
+        digitalWrite(stepsLedsPort, stepIndicator < 4); //liga posicao do beat
       }
       else if (instruments[selectedInstrument]->getPosition(selectedPattern) == i)
       {
-        digitalWrite(stepsLedsPort, stepIndicator < 1);
+        digitalWrite(stepsLedsPort, stepIndicator < 1); //percorre steps
       }
       else
       {
@@ -106,7 +111,7 @@ void read16(bool shift)
       }
       steps[i]->setReading(digitalRead(stepsButtonsPort));
       //read pots
-      readPotentiometer(i);
+      //      readPotentiometer(i);
     }
     stepIndicator = (stepIndicator + 1) & 0b00000111;
   }
@@ -149,7 +154,7 @@ void nextStep()
 {
   for (byte i = 0; i < 8; i++)
   {
-    if (instruments[i]->nextStep(selectedPattern))
+    if (instruments[i]->nextStep(playingPattern))
     {
       writeMIDI(0x90, instruments[i]->note, 0x7F);
     }
@@ -167,6 +172,8 @@ void copyPattern(byte a, byte b, byte selectedInst)
     instruments[selectedInst]->patterns[b]->values[i] =
       instruments[selectedInst]->patterns[a]->values[i];
   }
+  instruments[selectedInst]->patterns[b]->s_length =
+    instruments[selectedInst]->patterns[a]->s_length;
 }
 
 void setupStepsPointers()
@@ -175,6 +182,6 @@ void setupStepsPointers()
     steps[i]->setPointer(instruments[selectedInstrument]->patterns[selectedPattern]->values + i);
 }
 
-void readPotentiometer(byte i) {
-  pots[i].setReading(analogRead(potsPort) >> 3);
-}
+//void readPotentiometer(byte i) {
+//  pots[i].setReading(analogRead(potsPort) >> 3);
+//}

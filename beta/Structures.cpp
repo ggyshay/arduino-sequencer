@@ -4,6 +4,7 @@
 Instrument *repeating;
 byte copyingPattern = -1;
 byte pressedPattern = -1;
+byte playingPattern = 0;
 byte selectedInstrument = 0;
 byte selectedPattern = 0;
 byte clockCounter = 0;
@@ -13,7 +14,7 @@ Instrument *instruments[8];
 Button *controlButtons[8];
 Button *steps[8];
 Button *instrumentsButtons[8];
-Potentiometer pots[16];
+//Potentiometer pots[16];
 bool instrumentsButtonsAux[8] = {false};
 
 void setupStructures () {
@@ -22,13 +23,13 @@ void setupStructures () {
     steps[i] = new Button(nullptr, false);
     instrumentsButtons[i] = new Button(instrumentsButtonsAux + i, true);
   }
-  for (byte i = 0; i < 16; i++) {
-    Potentiometer pots(48 + i);
-  }
+//  for (byte i = 0; i < 16; i++) {
+//    Potentiometer pots[i] = Potentiometer(48 + i);
+//  }
   controlButtons[0] = new Button(&shiftPressed, true);
   controlButtons[1] = new Button(&copyPressed, true);
   controlButtons[2] = new Button(&beatRepeatPressed, true);
-  controlButtons[3] = new Button(&startPressed, false);
+  controlButtons[3] = new Button(&startPressed, true);
   controlButtons[4] = new Button(&pat0Pressed, true);
   controlButtons[5] = new Button(&pat1Pressed, true);
   controlButtons[6] = new Button(&pat2Pressed, true);

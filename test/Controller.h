@@ -1,3 +1,4 @@
+
 #include <Arduino.h>
 #define instrumentsLedsPort 2
 #define instrumentsButtonsPort 7
@@ -5,8 +6,6 @@
 #define stepsButtonsPort 4
 #define controlButtonsPort 6
 #define potsPort A0
-#define POT_RESOLUTION 2
-#define POT_TIMEOUT 300
 #define pat0 4
 #define pat1 5
 #define pat2 6
@@ -17,11 +16,11 @@ extern bool shiftPressed;
 extern bool copyPressed;
 extern bool beatRepeatPressed;
 extern bool startPressed;
-extern bool patPlaying;
 extern bool pat3Pressed;
 extern bool pat2Pressed;
 extern bool pat1Pressed;
 extern bool pat0Pressed;
+
 
 class Sequence {
   public:
@@ -31,7 +30,6 @@ class Sequence {
 //    void resetSequence(void);
     bool values[SEQUENCE_LENGTH] = {false};
     byte s_length = SEQUENCE_LENGTH;
-//    bool playing = false;
 //    byte getPosition(void);
 //    byte currentPosition = 0;
 };
@@ -65,18 +63,5 @@ class Button {
     unsigned long lastDebounceTime = 0; // TODO: change to byte, this is too costly
 
 };
-//
-//class Potentiometer {
-//  public:
-//    Potentiometer(byte control);
-//    Potentiometer();
-//    void setReading(byte value);
-//    unsigned long potTime;
-//    bool moving;
-//
-//  private:
-//    byte _control;
-//    byte _value;
-//};
 void sendBits(byte i);
-void writeMIDI(byte cmd, byte pitch, byte velocity);
+void noteOn(byte cmd, byte pitch, byte velocity);
