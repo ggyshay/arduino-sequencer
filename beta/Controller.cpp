@@ -87,32 +87,32 @@ Button::Button(bool *_value, bool _isReleaseSensitive) {
 void Button::setPointer(bool *ptr) {
   value = ptr;
 }
-//
-//Potentiometer::Potentiometer(byte control) {
-//  _control = control;
-//  _value = 0;
-//}
-//
-//Potentiometer::Potentiometer() {
-//  _value = 0;
-//}
-//
-//void Potentiometer::setReading(byte value) {
-//  if (_value - value > POT_RESOLUTION || _value - value < - POT_RESOLUTION){
-//    potTime = millis();
-//  }
-//    
-//  if (potTime + POT_TIMEOUT > millis()){
-//    moving = true;
-//  } else {
-//    moving = false;
-//  }
-//
-//  if (moving){
-//    _value = value;
-//    writeMIDI(_control, _value, 0);
-//  }
-//}
+
+Potentiometer::Potentiometer(byte control) {
+  _control = control;
+  _value = 0;
+}
+
+Potentiometer::Potentiometer() {
+  _value = 0;
+}
+
+void Potentiometer::setReading(byte value) {
+  if (_value - value > POT_RESOLUTION || _value - value < - POT_RESOLUTION){
+    potTime = millis();
+  }
+    
+  if (potTime + POT_TIMEOUT > millis()){
+    moving = true;
+  } else {
+    moving = false;
+  }
+
+  if (moving){
+    _value = value;
+    writeMIDI(_control, _value, 0);
+  }
+}
 
 void sendBits(byte n) {
   PORTB = PORTB & B100000;

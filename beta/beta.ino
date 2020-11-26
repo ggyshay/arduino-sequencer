@@ -4,17 +4,18 @@ void setup()
 {
   Serial.begin(115200);
   setupStructures();
-  setupStepsPointers(); 
+  setupStepsPointers();
 }
 
 void loop()
 {
   repeating = nullptr;
   read8();
-  if (shiftPressed) read16(true);
-  else read16(false);
+  //  if (shiftPressed) read16(true);
+  //  else read16(false);
+  // read16(false);
 
-  handleMIDIMessage();
+  //  handleMIDIMessage();
 }
 
 bool readControlButton(byte i)
@@ -23,12 +24,15 @@ bool readControlButton(byte i)
   controlButtons[i]->setReading(tmp);
   if (!tmp)
     return false;
-  if (copyPressed) {
-    if (selectedPattern == i - pat0) return false;
+  if (copyPressed)
+  {
+    if (selectedPattern == i - pat0)
+      return false;
     copyPattern(selectedPattern, i - pat0, selectedInstrument);
     return false;
   }
-  if (startPressed) {
+  if (startPressed)
+  {
     playingPattern = selectedPattern;
     return false;
   }
@@ -97,18 +101,19 @@ void read16(bool shift)
     for (byte i = 0; i < SEQUENCE_LENGTH; ++i)
     {
       sendBits(i);
-      if (*(steps[i]->value))
-      {
-        digitalWrite(stepsLedsPort, stepIndicator < 4); //liga posicao do beat
-      }
-      else if (instruments[selectedInstrument]->getPosition(selectedPattern) == i)
-      {
-        digitalWrite(stepsLedsPort, stepIndicator < 1); //percorre steps
-      }
-      else
-      {
-        digitalWrite(stepsLedsPort, false);
-      }
+      digitalWrite(stepsLedsPort, *(steps[i]->value)); //liga posicao do beat
+      // if (*(steps[i]->value))
+      // {
+      //   digitalWrite(stepsLedsPort, stepIndicator < 4); //liga posicao do beat
+      // }
+      // else if (instruments[selectedInstrument]->getPosition(selectedPattern) == i)
+      // {
+      //   digitalWrite(stepsLedsPort, stepIndicator < 1); //percorre steps
+      // }
+      // else
+      // {
+      //   digitalWrite(stepsLedsPort, false);
+      // }
       steps[i]->setReading(digitalRead(stepsButtonsPort));
       //read pots
       //      readPotentiometer(i);
@@ -170,10 +175,10 @@ void copyPattern(byte a, byte b, byte selectedInst)
   for (byte i = 0; i < SEQUENCE_LENGTH; i++)
   {
     instruments[selectedInst]->patterns[b]->values[i] =
-      instruments[selectedInst]->patterns[a]->values[i];
+        instruments[selectedInst]->patterns[a]->values[i];
   }
   instruments[selectedInst]->patterns[b]->s_length =
-    instruments[selectedInst]->patterns[a]->s_length;
+      instruments[selectedInst]->patterns[a]->s_length;
 }
 
 void setupStepsPointers()
